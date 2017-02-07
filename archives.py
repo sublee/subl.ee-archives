@@ -45,8 +45,8 @@ def index(src_repo):
         commit = filename
         time = int(subprocess.check_output([
             'git', '-C', src_repo, '--no-pager', 'show',
-            '-s', '--date=format:%s', '--format=%ad', commit,
-        ]))
+            '-s', '--date=raw', '--format=%ad', commit,
+        ]).partition(' ')[0])
         commits.append((time, commit))
     commits.sort(reverse=True)
     print('<ul>')
