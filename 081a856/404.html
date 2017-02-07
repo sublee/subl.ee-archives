@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html prefix="og: http://ogp.me/ns#">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" /> 
+<title>404 Not Found &mdash; sublee</title>
+
+<!--[if lt IE 9]>
+<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+<link rel="stylesheet" type="text/css" href="style.css" />
+<link rel="shortcut icon" type="image/icon" href="favicon.ico" />
+</head>
+<body class="error">
+  
+  <h1>404 Not Found</h1>
+  <p>The requested URL was not found on the server.</p>
+  <p>If you entered the URL manually please check your spelling
+    and try again.</p>
+
+  <script src="http://code.jquery.com/jquery-latest.min.js"></script>
+  <script>
+    var faviconTable = $('<table>').addClass('logo');
+    for (var i = 0; i < 16; ++i) {
+      var tr = $('<tr>');
+      faviconTable.append(tr);
+      for (var j = 0; j < 16; ++j) {
+        tr.append($('<td>').addClass('c' + j + 'r' + i).append('<i></i>'));
+      }
+    }
+    $(document.body).prepend(faviconTable);
+  </script>
+  
+    <script>
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-1078484-1']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var isHTTPS = 'https:' == document.location.protocol;
+        var ga = document.createElement('script');
+        ga.type = 'text/javascript';
+        ga.async = true;
+        ga.src = (isHTTPS ? 'https://ssl' : 'http://www')
+               + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0];
+        s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+  
+</body>
+</html>

@@ -1,0 +1,114 @@
+<!doctype html>
+<html prefix="og: http://ogp.me/ns#"> <head><meta charset=utf-8><meta name=viewport content=width=500><title>Themes</title><meta http-equiv=X-UA-Compatible content="IE=edge, chrome=1"><link rel=stylesheet type=text/css href=/style-sublee.css><link rel="shortcut icon" type=image/icon href=/favicon.ico><!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]--><script src=//cdnjs.cloudflare.com/ajax/libs/sizzle/2.1.1/sizzle.min.js></script><script>
+    var $$ = Sizzle;
+    var __theme__ = "sublee";
+    function guessTheme() {
+      var theme;
+      if (location.hash) {
+        theme = location.hash.replace(/^#/, '');
+      } else {
+        var date = new Date();
+        var eventKey = (date.getMonth() + 1) + '/' + date.getDate();
+        var events = {"10/9": "hangulize", "3/8": "mogef", "4/1": "90s"};
+        theme = events[eventKey];
+      }
+      return theme || "sublee";
+    }
+    var $cssLink = $$('link[rel=stylesheet]:eq(0)')[0];
+    function selectTheme(theme) {
+      var cssUrl = '/style-' + theme + '.css';
+      $cssLink.setAttribute('href', cssUrl);
+      __theme__ = theme;
+      return cssUrl;
+    }
+    var theme = guessTheme();
+    if (theme != __theme__) {
+      selectTheme(theme);
+    }
+  </script></head> <body class=themes> <header> <table class=logo> <tbody> <tr> <td class=logo-l rowspan=2></td> <td class=logo-t></td> <td class=logo-r rowspan=2></td> </tr> <tr> <td class=logo-b></td> </tr> </tbody> </table> </header> <section class=themes> <h1>Themes</h1> <ul> <li><a href=#90s data-theme=90s>90s</a></li> <li><a href=#bluescreen data-theme=bluescreen>bluescreen</a></li> <li><a href=#facebook data-theme=facebook>facebook</a></li> <li><a href=#hangulize data-theme=hangulize>hangulize</a></li> <li><a href=#mearie data-theme=mearie>mearie</a></li> <li><a href=#milky data-theme=milky>milky</a></li> <li><a href=#mogef data-theme=mogef>mogef</a></li> <li><a href=#mono data-theme=mono>mono</a></li> <li><a href=#nexon data-theme=nexon>nexon</a></li> <li><a href=#solarized data-theme=solarized>solarized</a></li> <li><a href=#sublee data-theme=sublee>sublee</a></li> <li><a href=#twilight data-theme=twilight>twilight</a></li> <li><a href=#vlaah data-theme=vlaah>vlaah</a></li> </ul> </section> <script src=//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js></script> <script>
+    // build the hash to anchor map.
+    var anchors = {}
+    _.each($$('.themes a'), function($a) {
+      var theme = $a.getAttribute('data-theme');
+      anchors[theme] = $a;
+    });
+    // re-draw the logo when a css is loaded.
+    var $logoBody = $$('table.logo > tbody:eq(0)')[0];
+    var $logoRefresher = document.createElement('img');
+    $logoRefresher.onerror = function() {
+      $logoBody.style.display = null;
+    };
+    function redrawLogo(cssUrl) {
+      $logoBody.style.display = 'none';
+      $logoRefresher.src = cssUrl;
+    }
+    // a callback function for theme selectors.
+    function themeSelected($a) {
+      if (/selected/.exec($a.getAttribute('class'))) {
+        return;
+      }
+      var theme = $a.getAttribute('data-theme');
+      var cssUrl = selectTheme(theme);
+      document.title = "Themes" + ': ' + theme;
+      // unmark selected anchor.
+      var $prevA = arguments.callee.anchor;
+      if ($prevA) {
+        $prevA.setAttribute('href', '#' + $prevA.getAttribute('data-theme'));
+        $prevA.setAttribute('class', '');
+        redrawLogo(cssUrl);
+      }
+      // mark as selected.
+      $a.setAttribute('href', "/" + '#' + theme);
+      $a.setAttribute('class', 'selected');
+      arguments.callee.anchor = $a;
+    }
+    // register event handlers.
+    if ('onhashchange' in window) {
+      window.onhashchange = function() {
+        var theme = guessTheme();
+        themeSelected(anchors[theme]);
+      };
+    } else {
+      function anchorClicked() {
+        location.href = this.getAttribute('href');
+        themeSelected(this);
+        return false;
+      }
+      _.each(anchors, function($a) {
+        $a.onclick = anchorClicked;
+      });
+    }
+    // select the initial theme.
+    themeSelected(anchors[__theme__]);
+  </script> <footer> <p class=copyright> Heungsub Lee &copy; <span class=year>2013–2017</span> </p> <script>
+          // auto-renew the year range of the copyright.
+          var $year = $$('span.year:eq(0)')[0];
+          var since = Number(/^[0-9]+/.exec($year.innerText)[0]);
+          var until = Number(/[0-9]+$/.exec($year.innerText)[0]);
+          var thisYear = (new Date()).getFullYear();
+          until = Math.max(until, thisYear);
+          if (since < until) {
+            $year.innerHTML = since + '&ndash;' + until;
+          } else {
+            $year.innerHTML = until;
+          }
+        </script> </footer> <script>
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-1078484-1']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var isHTTPS = 'https:' == document.location.protocol;
+        var ga = document.createElement('script');
+        ga.type = 'text/javascript';
+        ga.async = true;
+        ga.src = (isHTTPS ? 'https://ssl' : 'http://www')
+               + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0];
+        s.parentNode.insertBefore(ga, s);
+      })();
+    </script> <script src=//wcs.naver.net/wcslog.js></script> <script>
+      var wcs_add = {wa: '1275da0d21793e8'};
+      wcs_do();
+    </script> </body> </html>

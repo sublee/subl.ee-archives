@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>sublee</title>
+<!--[if lt IE 9]>
+<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+<link rel="stylesheet" type="text/css" href="style.css" />
+<link rel="shortcut icon" type="image/icon" href="favicon.ico" />
+</head>
+<body>
+  <h1>
+    <span class="name">Heungsub Lee</span>
+    <span class="nickname">{ sublee }</span>
+  </h1>
+  <h2>
+    <span class="job">A Game Server Programmer</span>, at
+    <a href="http://company.nexon.com/Eng">NEXON</a>
+  </h2>
+  <p class="email">
+    <a href="mailto:h@subl.ee">h@subl.ee</a> 
+    (Email, Gtalk, MSN)
+  </p>
+  <p class="sns">
+    
+      <a href="https://github.com/sublee">GitHub</a>,
+    
+      <a href="http://linkedin.com/in/sublee">LinkedIn</a>
+    
+  </p>
+  <section class="projects">
+    <h3>Projects</h3>
+    <ul>
+      
+        <li><a href="http://facebook.com/KartRiderRush">KartRider Rush</a>,
+        a mobile racing game based on KartRider Online.</li>
+      
+        <li><a href="http://www.hangulize.org/">Hangulize</a>,
+        a Korean alphabet transcription tool.</li>
+      
+        <li><a href="http://packages.python.org/trueskill">TrueSkill</a>,
+        an implementation of the TrueSkill rating system for Python.</li>
+      
+        <li><a href="http://gaedrip.kr/">Gardrip</a>,
+        a collection of Korean humors.</li>
+      
+        <li><a href="http://jdoctest.lunant.org/">jDoctest</a>,
+        an interactive JavaScript test framework.</li>
+      
+        <li><a href="http://fontface.kr/">fontface.kr</a>,
+        an API which serves Korean alphabet web fonts.</li>
+      
+        <li><a href="http://packages.python.org/Flask-AutoIndex">Flask-AutoIndex</a>,
+        mod_autoindex for Flask.</li>
+      
+        <li><a href="http://subl.ee/runker/">Subleerunker</a>,
+        a SUBERUNKER parody game.</li>
+      
+        <li><a href="http://craezcounter.appspot.com/">Cra-ezCounter</a>,
+        an API which counts unique visitors on any web page.</li>
+      
+        <li><a href="http://me2.subl.ee/me2virus">me2Virus</a>,
+        a social virus in me2DAY.</li>
+      
+        <li><a href="https://github.com/sublee/caselib">caselib</a>,
+        a string converter between different naming convention.</li>
+      
+        <li><a href="http://vlaah.com/">VLAAH</a>,
+        a social network service focuses on favorites of people.</li>
+      
+    </ul>
+  </section>
+  <section class="contributed">
+    <h3>Contributed</h3>
+    <p><a href="http://jquery.com/">jQuery</a>,
+      <a href="http://flask.pocoo.org/">Flask</a>,
+      <a href="http://classy.pocoo.org/">Classy</a>,
+      <a href="https://github.com/martynsmith/node-irc">node-irc</a>,
+      <a href="http://pypi.python.org/pypi/mockcache">mockcache</a>,
+      <a href="http://langdev.org/">LangDev</a>
+      
+    </p>
+  </section>
+  <script src="http://code.jquery.com/jquery-latest.min.js"></script>
+  <script>
+    var faviconTable = $('<table>').addClass('logo');
+    for (var i = 0; i < 16; ++i) {
+      var tr = $('<tr>');
+      faviconTable.append(tr);
+      for (var j = 0; j < 16; ++j) {
+        tr.append($('<td>').addClass('c' + j + 'r' + i).append('<i>'));
+      }
+    }
+    $(document.body).prepend(faviconTable);
+  </script>
+  
+    <script>
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-1078484-1']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var isHTTPS = 'https:' == document.location.protocol;
+        var ga = document.createElement('script');
+        ga.type = 'text/javascript';
+        ga.async = true;
+        ga.src = (isHTTPS ? 'https://ssl' : 'http://www')
+               + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0];
+        s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+  
+</body>
+</html>
