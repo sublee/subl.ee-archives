@@ -43,11 +43,10 @@ def index(src_repo):
         elif len(filename) != 7:
             continue
         commit = filename
-        time = subprocess.check_output([
-            'git', '-C', src_repo, '--no-pager',
-            'show', '-s', '--date=raw', '--format=%ad', commit,
-        ])
-        time = int(time.partition(' ')[0])
+        time = int(subprocess.check_output([
+            'git', '-C', src_repo, '--no-pager', 'show',
+            '-s', '--date=format:%s', '--format=%ad', commit,
+        ]))
         commits.append((time, commit))
     commits.sort(reverse=True)
     print('<ul>')
