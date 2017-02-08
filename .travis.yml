@@ -1,0 +1,29 @@
+language: python
+sudo: false
+python:
+- 2.7
+branches:
+  only: [master]
+env:
+- secure: "eyv9Ovzw6WhDAdQQvNBlB+V86ShfjOqY2v8HtcbAWIxIKxT/Kk9Iuwgqy3AvH7PX2QZujQLGxGMDbeyHlDhfFiIsmrJ17SyOioJOB8jKIl1WyqiwJD0EONuETEV/F/s7Gz3CARefLGXU8CNBQwBZ24nSs/i+oPsC05q3EmWHiv+nczNP1hIrEx7qOtfeO4N7PiULPS6zvpuP1ose6z1HUhnlFYaUaRzebGIGrfACuT/Mnlx+G5XSwuUi4IzJcMvfC45vmiF6tQm5RD0T+HuJ0FF9c+SZKrFPGW2BqgENuIvRtarg242G8zFlWlep4qqOE7n7O/VQA4p0AEilucfuYW62+HtIia/Fq1WmQWstzX7f1ZiZEk2ZsIb7rr1Iz4aXx5dhn8YNl/T9EkYW1Lq49yPCNAeZcDvT5AstrIIZV6DnWOFDOaCHpsnMhUmohvtzGybkcPR+z3hRhjZWj4NDCx/FcIKOUK4vIW/k2n5mi0zDsW1BXBjh6JLppg1OxVVPEGU2gsyuE11KI5+mXoqXcdZomo0nPHgRRkXNpG5n4wUaoDZQ5PdOMijJ57gQcmV1+DYloVevydBW5tLbMpw8D3yqf6Xj098neGzJ++r3QxB3bO2mSUQM3VINQBPnwUi9UcMqwbss4rWLBX49qz1bS/6v9vpnI3OV9lEebCfDzoA="
+install:
+- pip install -r requirements.txt
+script:
+- |
+  git checkout -b gh-pages
+- |
+  git clone "https://github.com/sublee/subl.ee" .subl.ee
+  python archives.py index .subl.ee > index.html
+  git add index.html
+- |
+  git rm archives.py || true
+  git rm requirements.txt || true
+  git rm .travis.yml || true
+- |
+  git config user.name "Heungsub Lee"
+  git config user.email "sub@subl.ee"
+  git commit -am 'Deploy archives.subl.ee ($TRAVIS_COMMIT)'
+- |
+  git remote set-url origin \
+    "https://$GITHUB_TOKEN@github.com/sublee/subl.ee-archives"
+  git push -f origin gh-pages > /dev/null 2>&1

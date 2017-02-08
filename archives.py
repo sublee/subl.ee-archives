@@ -38,7 +38,9 @@ def index(src_repo):
     repo = os.path.dirname(os.path.abspath(__file__))
     commits = []
     for filename in os.listdir(repo):
-        if not os.path.isdir(filename):
+        if filename.startswith('.'):
+            continue
+        elif not os.path.isdir(filename):
             continue
         elif len(filename) != 7:
             continue
