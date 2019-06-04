@@ -1,0 +1,1108 @@
+<!doctype html>
+<html prefix="og: http://ogp.me/ns#" class="themes">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+  <title>Themes</title>
+
+  <link rel="icon" type="image/icon" sizes="16x16" href="../favicon.ico" />
+
+  <link rel="stylesheet" media="screen" href="../style-sublee.css" class="theme" />
+  <link rel="stylesheet" media="print" href="../-/print.css" />
+
+  <!--[if lt IE 9]>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.2/html5shiv.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/sizzle/2.1.1/sizzle.min.js"></script>
+  <script>
+    document.head = document.getElementsByTagName('head')[0];
+    document.querySelector = function(query) { return Sizzle(query)[0]; };
+    document.querySelectorAll = function(query) { return Sizzle(query); };
+  </script>
+  <![endif]-->
+
+  <script>
+    
+
+var __theme__ = "sublee";
+var __themeSelected__ = false;
+
+var themeLink = document.querySelector('.theme');
+var faviconLink = document.querySelector('link[rel="icon"]');
+
+function reversed() {
+  return /reversed/.exec(document.documentElement.className);
+}
+
+function getThemeURL(theme) {
+  return '../style-' + theme + '.css';
+}
+
+function parseThemeURL(url) {
+  return /style-([^.]+)\.css$/.exec(url)[1];
+}
+
+function isThemeLoaded() {
+  var css = document.styleSheets[0];
+  return css && (__theme__ == parseThemeURL(css.href)) && css.cssRules;
+}
+
+function guessTheme() {
+  var regex = /[?&#]theme=([^&#]+)/;
+  var hash = location.hash;
+  var href = location.href;
+  var theme = (regex.exec(hash) || regex.exec(href) || [])[1];
+  if (theme) {
+    return theme;
+  }
+  var date = new Date();
+  var eventKey = (date.getMonth() + 1) + '/' + date.getDate();
+  var events = {"4/1": "doodle", "4/16": "ribbon"};
+  theme = events[eventKey];
+  return theme || "sublee";
+}
+
+function generateFavicon(shape, colors) {
+  var favicon = document.createElement('canvas');
+  favicon.width = 16;
+  favicon.height = 16;
+  var ctx = favicon.getContext('2d');
+  var partitioned, left;
+  for (var i = 0; i < 3; ++i) {
+    partitioned = !!shape[i];
+    left = 1 + i * 5;
+    ctx.fillStyle = colors[i + 1] || colors[0];
+    if (partitioned) {
+      // shape: i
+      ctx.fillRect(left, 1, 4, 7);
+      ctx.fillStyle = colors[i + 4] || colors[0];
+      ctx.fillRect(left, 9, 4, 6);
+    } else {
+      // shape: I
+      ctx.fillRect(left, 1, 4, 14);
+    }
+  }
+  return favicon;
+}
+
+function updateFavicon() {
+  try {
+    if (!isThemeLoaded()) {
+      throw 'retry';
+    }
+    function rgbOnly(color) {
+      if (/^rgba/i.exec(color)) {
+        throw 'retry';
+      } else {
+        return color;
+      }
+    }
+    var shape = [];
+    var colors = {};
+    var horizontalDirections = ['left', 'middle', 'right'];
+    for (var i = 0; i < 3; ++i) {
+      var h = horizontalDirections[reversed() ? 2 - i : i];
+      var col = document.querySelector('.emblem-' + h);
+      var topCell = col.querySelector('.emblem-top');
+      var bottomCell = col.querySelector('.emblem-bottom');
+      colors[i + 1] = rgbOnly(getComputedStyle(topCell).backgroundColor);
+      if (bottomCell.offsetParent) {
+        shape[i] = true;
+        colors[i + 4] = rgbOnly(getComputedStyle(bottomCell).backgroundColor);
+      } else {
+        shape[i] = false;
+      }
+    }
+    var favicon = generateFavicon(shape, colors);
+    faviconLink.href = favicon.toDataURL('image/icon');
+  } catch (err) {
+    if (err == 'retry') {
+      setTimeout(arguments.callee, 100);
+    } else {
+      throw err;
+    }
+  }
+}
+
+function selectTheme(theme) {
+  __theme__ = theme;
+  __themeSelected__ = true;
+  themeLink.setAttribute('href', getThemeURL(theme));
+}
+
+function selectGuessedTheme() {
+  var theme = guessTheme();
+  if (theme != __theme__) {
+    selectTheme(theme);
+  }
+  return theme;
+}
+
+// Select the initial theme.
+selectGuessedTheme();
+
+// Load jQuery and init instant theme selection when the hash changed.
+window.onhashchange = function() {
+  var done = false;
+  var jQueryScript = document.createElement('script');
+  jQueryScript.src = '//code.jquery.com/jquery-1.11.2.min.js';
+  jQueryScript.onload = jQueryScript.onreadystatechange = function() {
+    var state = this.readyState;
+    if (!done && (!state || /loaded|complete/.exec(state))) {
+      this.onload = this.onreadystatechange = null;
+      done = true;
+      initThemeSelection();
+      selectGuessedTheme();
+    }
+  };
+  document.head.appendChild(jQueryScript);
+};
+
+function initThemeSelection() {
+  var $body = $(document.body);
+  var $themeStyle = $('<style>').appendTo(document.head);
+  // Override selectTheme() to re-draw the page.
+  selectTheme = function (theme) {
+    __theme__ = theme;
+    isThemeLoaded = function() { return false; };
+    $body.hide();
+    $.get(getThemeURL(theme), function(css) {
+      try {
+        $themeStyle.text(css);
+      } catch (e) {
+        // IE8 throws SCRIPT65535.
+        location.href = location.href;
+        location.reload();
+        return;
+      }
+      setTimeout(function() {
+        // Re-draw the page.
+        isThemeLoaded = function() {return true; };
+        $body.fadeIn();
+        updateFavicon();
+      }, 10);
+    });
+    // <link> for theme is not required.
+    $(themeLink).remove();
+  }
+  window.onhashchange = selectGuessedTheme;
+}
+  </script>
+
+  
+  <meta property="og:type" content="website" /><meta property="og:title" content="Themes" /><meta property="og:url" content="https://subl.ee" /><meta property="og:image" content="https://subl.ee/-/og.gif" /><meta property="og:image:type" content="image/gif" />
+
+  
+  <meta name="author" content="Heungsub Lee" /><meta name="contact" content="sub@subl.ee" /><meta name="copyright" content="&copy; 2012–2019 Heungsub Lee" />
+
+  
+</head>
+<body>
+  
+    <header>
+      <div class="emblem-wrap">
+        <div class="emblem">
+          <div class="emblem-left">
+            <i class="emblem-top"></i>
+            <i class="emblem-bottom"></i>
+          </div>
+          <div class="emblem-middle">
+            <i class="emblem-top"></i>
+            <i class="emblem-bottom"></i>
+          </div>
+          <div class="emblem-right">
+            <i class="emblem-top"></i>
+            <i class="emblem-bottom"></i>
+          </div>
+        </div>
+      </div>
+      <!--[if !IE]><!-->
+      <script> updateFavicon(); </script>
+      <!--<![endif]-->
+    </header>
+  
+
+  <main>
+    
+  <h1>Themes</h1>
+  <ul>
+    
+      <li id="aws">
+        <img class="favicon" />
+        <script>
+          var favicon = generateFavicon([
+            0,
+            2,
+            0
+          ], {"0": "#f90"});
+          document.getElementById("aws")
+                  .querySelector('img.favicon')
+                  .setAttribute('src', favicon.toDataURL('image/icon'));
+        </script>
+        <a href="#theme=aws" data-theme="aws">aws</a>
+      </li>
+    
+      <li id="between">
+        <img class="favicon" />
+        <script>
+          var favicon = generateFavicon([
+            0,
+            2,
+            0
+          ], {"0": "#38dcd7"});
+          document.getElementById("between")
+                  .querySelector('img.favicon')
+                  .setAttribute('src', favicon.toDataURL('image/icon'));
+        </script>
+        <a href="#theme=between" data-theme="between">between</a>
+      </li>
+    
+      <li id="blizzard">
+        <img class="favicon" />
+        <script>
+          var favicon = generateFavicon([
+            0,
+            2,
+            0
+          ], {"0": "#00adef"});
+          document.getElementById("blizzard")
+                  .querySelector('img.favicon')
+                  .setAttribute('src', favicon.toDataURL('image/icon'));
+        </script>
+        <a href="#theme=blizzard" data-theme="blizzard">blizzard</a>
+      </li>
+    
+      <li id="coupang">
+        <img class="favicon" />
+        <script>
+          var favicon = generateFavicon([
+            0,
+            2,
+            4
+          ], {"0": "#521110", "2": "#d73227", "3": "#e99923", "5": "#92ba3e", "6": "#50a3d9"});
+          document.getElementById("coupang")
+                  .querySelector('img.favicon')
+                  .setAttribute('src', favicon.toDataURL('image/icon'));
+        </script>
+        <a href="#theme=coupang" data-theme="coupang">coupang</a>
+      </li>
+    
+      <li id="cwkim">
+        <img class="favicon" />
+        <script>
+          var favicon = generateFavicon([
+            1,
+            0,
+            4
+          ], {"0": "#208aa2", "2": "#e0b46d", "3": "#e8acac", "4": "#c9c9c9"});
+          document.getElementById("cwkim")
+                  .querySelector('img.favicon')
+                  .setAttribute('src', favicon.toDataURL('image/icon'));
+        </script>
+        <a href="#theme=cwkim" data-theme="cwkim">cwkim</a>
+      </li>
+    
+      <li id="devsisters">
+        <img class="favicon" />
+        <script>
+          var favicon = generateFavicon([
+            0,
+            2,
+            0
+          ], {"0": "#ff6000"});
+          document.getElementById("devsisters")
+                  .querySelector('img.favicon')
+                  .setAttribute('src', favicon.toDataURL('image/icon'));
+        </script>
+        <a href="#theme=devsisters" data-theme="devsisters">devsisters</a>
+      </li>
+    
+      <li id="doodle">
+        <img class="favicon" />
+        <script>
+          var favicon = generateFavicon([
+            0,
+            2,
+            0
+          ], {"0": "#f49", "5": "#ef3"});
+          document.getElementById("doodle")
+                  .querySelector('img.favicon')
+                  .setAttribute('src', favicon.toDataURL('image/icon'));
+        </script>
+        <a href="#theme=doodle" data-theme="doodle">doodle</a>
+      </li>
+    
+      <li id="facebook">
+        <img class="favicon" />
+        <script>
+          var favicon = generateFavicon([
+            0,
+            2,
+            0
+          ], {"0": "#3b5999"});
+          document.getElementById("facebook")
+                  .querySelector('img.favicon')
+                  .setAttribute('src', favicon.toDataURL('image/icon'));
+        </script>
+        <a href="#theme=facebook" data-theme="facebook">facebook</a>
+      </li>
+    
+      <li id="gitlab">
+        <img class="favicon" />
+        <script>
+          var favicon = generateFavicon([
+            1,
+            0,
+            4
+          ], {"0": "#e24329", "1": "#fc6d26", "3": "#fc6d26", "4": "#fca326", "6": "#fca326"});
+          document.getElementById("gitlab")
+                  .querySelector('img.favicon')
+                  .setAttribute('src', favicon.toDataURL('image/icon'));
+        </script>
+        <a href="#theme=gitlab" data-theme="gitlab">gitlab</a>
+      </li>
+    
+      <li id="golang">
+        <img class="favicon" />
+        <script>
+          var favicon = generateFavicon([
+            0,
+            2,
+            0
+          ], {"0": "#76e1fe"});
+          document.getElementById("golang")
+                  .querySelector('img.favicon')
+                  .setAttribute('src', favicon.toDataURL('image/icon'));
+        </script>
+        <a href="#theme=golang" data-theme="golang">golang</a>
+      </li>
+    
+      <li id="google">
+        <img class="favicon" />
+        <script>
+          var favicon = generateFavicon([
+            0,
+            2,
+            0
+          ], {"1": "#4285f4", "2": "#ea4335", "3": "#34a853", "5": "#fbbc05"});
+          document.getElementById("google")
+                  .querySelector('img.favicon')
+                  .setAttribute('src', favicon.toDataURL('image/icon'));
+        </script>
+        <a href="#theme=google" data-theme="google">google</a>
+      </li>
+    
+      <li id="heumtax">
+        <img class="favicon" />
+        <script>
+          var favicon = generateFavicon([
+            0,
+            2,
+            0
+          ], {"0": "#1f274b"});
+          document.getElementById("heumtax")
+                  .querySelector('img.favicon')
+                  .setAttribute('src', favicon.toDataURL('image/icon'));
+        </script>
+        <a href="#theme=heumtax" data-theme="heumtax">heumtax</a>
+      </li>
+    
+      <li id="kakao">
+        <img class="favicon" />
+        <script>
+          var favicon = generateFavicon([
+            0,
+            2,
+            0
+          ], {"0": "#ffcd00"});
+          document.getElementById("kakao")
+                  .querySelector('img.favicon')
+                  .setAttribute('src', favicon.toDataURL('image/icon'));
+        </script>
+        <a href="#theme=kakao" data-theme="kakao">kakao</a>
+      </li>
+    
+      <li id="korbit">
+        <img class="favicon" />
+        <script>
+          var favicon = generateFavicon([
+            1,
+            2,
+            4
+          ], {"0": "#3bc2d4"});
+          document.getElementById("korbit")
+                  .querySelector('img.favicon')
+                  .setAttribute('src', favicon.toDataURL('image/icon'));
+        </script>
+        <a href="#theme=korbit" data-theme="korbit">korbit</a>
+      </li>
+    
+      <li id="lcd">
+        <img class="favicon" />
+        <script>
+          var favicon = generateFavicon([
+            0,
+            2,
+            0
+          ], {"0": "#332", "5": "#661"});
+          document.getElementById("lcd")
+                  .querySelector('img.favicon')
+                  .setAttribute('src', favicon.toDataURL('image/icon'));
+        </script>
+        <a href="#theme=lcd" data-theme="lcd">lcd</a>
+      </li>
+    
+      <li id="lg">
+        <img class="favicon" />
+        <script>
+          var favicon = generateFavicon([
+            0,
+            2,
+            0
+          ], {"0": "#a50034"});
+          document.getElementById("lg")
+                  .querySelector('img.favicon')
+                  .setAttribute('src', favicon.toDataURL('image/icon'));
+        </script>
+        <a href="#theme=lg" data-theme="lg">lg</a>
+      </li>
+    
+      <li id="mearie">
+        <img class="favicon" />
+        <script>
+          var favicon = generateFavicon([
+            0,
+            0,
+            0
+          ], {"0": "#397b9c"});
+          document.getElementById("mearie")
+                  .querySelector('img.favicon')
+                  .setAttribute('src', favicon.toDataURL('image/icon'));
+        </script>
+        <a href="#theme=mearie" data-theme="mearie">mearie</a>
+      </li>
+    
+      <li id="microsoft">
+        <img class="favicon" />
+        <script>
+          var favicon = generateFavicon([
+            0,
+            2,
+            0
+          ], {"1": "#f25022", "2": "#7fba00", "3": "#ffb900", "5": "#00a4ef"});
+          document.getElementById("microsoft")
+                  .querySelector('img.favicon')
+                  .setAttribute('src', favicon.toDataURL('image/icon'));
+        </script>
+        <a href="#theme=microsoft" data-theme="microsoft">microsoft</a>
+      </li>
+    
+      <li id="mit">
+        <img class="favicon" />
+        <script>
+          var favicon = generateFavicon([
+            0,
+            2,
+            4
+          ], {"0": "#000", "5": "#a31f34"});
+          document.getElementById("mit")
+                  .querySelector('img.favicon')
+                  .setAttribute('src', favicon.toDataURL('image/icon'));
+        </script>
+        <a href="#theme=mit" data-theme="mit">mit</a>
+      </li>
+    
+      <li id="mogef">
+        <img class="favicon" />
+        <script>
+          var favicon = generateFavicon([
+            0,
+            0,
+            0
+          ], {"1": "#4e9fd7", "2": "#ac1f8d", "3": "#bcbe50"});
+          document.getElementById("mogef")
+                  .querySelector('img.favicon')
+                  .setAttribute('src', favicon.toDataURL('image/icon'));
+        </script>
+        <a href="#theme=mogef" data-theme="mogef">mogef</a>
+      </li>
+    
+      <li id="naver">
+        <img class="favicon" />
+        <script>
+          var favicon = generateFavicon([
+            0,
+            2,
+            0
+          ], {"0": "#00c73c"});
+          document.getElementById("naver")
+                  .querySelector('img.favicon')
+                  .setAttribute('src', favicon.toDataURL('image/icon'));
+        </script>
+        <a href="#theme=naver" data-theme="naver">naver</a>
+      </li>
+    
+      <li id="naver-labs">
+        <img class="favicon" />
+        <script>
+          var favicon = generateFavicon([
+            0,
+            2,
+            0
+          ], {"0": "#000"});
+          document.getElementById("naver-labs")
+                  .querySelector('img.favicon')
+                  .setAttribute('src', favicon.toDataURL('image/icon'));
+        </script>
+        <a href="#theme=naver-labs" data-theme="naver-labs">naver-labs</a>
+      </li>
+    
+      <li id="nekoyume">
+        <img class="favicon" />
+        <script>
+          var favicon = generateFavicon([
+            0,
+            2,
+            0
+          ], {"0": "#5b6f90"});
+          document.getElementById("nekoyume")
+                  .querySelector('img.favicon')
+                  .setAttribute('src', favicon.toDataURL('image/icon'));
+        </script>
+        <a href="#theme=nekoyume" data-theme="nekoyume">nekoyume</a>
+      </li>
+    
+      <li id="netflix">
+        <img class="favicon" />
+        <script>
+          var favicon = generateFavicon([
+            0,
+            2,
+            0
+          ], {"0": "#e50914"});
+          document.getElementById("netflix")
+                  .querySelector('img.favicon')
+                  .setAttribute('src', favicon.toDataURL('image/icon'));
+        </script>
+        <a href="#theme=netflix" data-theme="netflix">netflix</a>
+      </li>
+    
+      <li id="netmarble">
+        <img class="favicon" />
+        <script>
+          var favicon = generateFavicon([
+            1,
+            0,
+            4
+          ], {"0": "#ffde00", "3": "#5d3824", "4": "#fe605f", "6": "#5d3824"});
+          document.getElementById("netmarble")
+                  .querySelector('img.favicon')
+                  .setAttribute('src', favicon.toDataURL('image/icon'));
+        </script>
+        <a href="#theme=netmarble" data-theme="netmarble">netmarble</a>
+      </li>
+    
+      <li id="nexon">
+        <img class="favicon" />
+        <script>
+          var favicon = generateFavicon([
+            1,
+            2,
+            0
+          ], {"0": "#0b2a4a", "3": "#c3d600", "4": "#00a1e1", "5": "#00a1e1"});
+          document.getElementById("nexon")
+                  .querySelector('img.favicon')
+                  .setAttribute('src', favicon.toDataURL('image/icon'));
+        </script>
+        <a href="#theme=nexon" data-theme="nexon">nexon</a>
+      </li>
+    
+      <li id="papago">
+        <img class="favicon" />
+        <script>
+          var favicon = generateFavicon([
+            1,
+            0,
+            4
+          ], {"0": "#00a9ff", "3": "#26cd6b", "4": "#0085ff", "6": "#f8be00"});
+          document.getElementById("papago")
+                  .querySelector('img.favicon')
+                  .setAttribute('src', favicon.toDataURL('image/icon'));
+        </script>
+        <a href="#theme=papago" data-theme="papago">papago</a>
+      </li>
+    
+      <li id="paper">
+        <img class="favicon" />
+        <script>
+          var favicon = generateFavicon([
+            0,
+            2,
+            0
+          ], {"0": "#000"});
+          document.getElementById("paper")
+                  .querySelector('img.favicon')
+                  .setAttribute('src', favicon.toDataURL('image/icon'));
+        </script>
+        <a href="#theme=paper" data-theme="paper">paper</a>
+      </li>
+    
+      <li id="piedpiper">
+        <img class="favicon" />
+        <script>
+          var favicon = generateFavicon([
+            0,
+            2,
+            0
+          ], {"0": "#007765"});
+          document.getElementById("piedpiper")
+                  .querySelector('img.favicon')
+                  .setAttribute('src', favicon.toDataURL('image/icon'));
+        </script>
+        <a href="#theme=piedpiper" data-theme="piedpiper">piedpiper</a>
+      </li>
+    
+      <li id="python">
+        <img class="favicon" />
+        <script>
+          var favicon = generateFavicon([
+            0,
+            2,
+            0
+          ], {"0": "#3776ab", "3": "#ffd343", "5": "#ffd343"});
+          document.getElementById("python")
+                  .querySelector('img.favicon')
+                  .setAttribute('src', favicon.toDataURL('image/icon'));
+        </script>
+        <a href="#theme=python" data-theme="python">python</a>
+      </li>
+    
+      <li id="pytorch">
+        <img class="favicon" />
+        <script>
+          var favicon = generateFavicon([
+            0,
+            0,
+            4
+          ], {"0": "#ee4c2c"});
+          document.getElementById("pytorch")
+                  .querySelector('img.favicon')
+                  .setAttribute('src', favicon.toDataURL('image/icon'));
+        </script>
+        <a href="#theme=pytorch" data-theme="pytorch">pytorch</a>
+      </li>
+    
+      <li id="ribbon">
+        <img class="favicon" />
+        <script>
+          var favicon = generateFavicon([
+            0,
+            2,
+            0
+          ], {"0": "#fc0"});
+          document.getElementById("ribbon")
+                  .querySelector('img.favicon')
+                  .setAttribute('src', favicon.toDataURL('image/icon'));
+        </script>
+        <a href="#theme=ribbon" data-theme="ribbon">ribbon</a>
+      </li>
+    
+      <li id="ridi">
+        <img class="favicon" />
+        <script>
+          var favicon = generateFavicon([
+            0,
+            2,
+            0
+          ], {"0": "#1f8ce6"});
+          document.getElementById("ridi")
+                  .querySelector('img.favicon')
+                  .setAttribute('src', favicon.toDataURL('image/icon'));
+        </script>
+        <a href="#theme=ridi" data-theme="ridi">ridi</a>
+      </li>
+    
+      <li id="samsung">
+        <img class="favicon" />
+        <script>
+          var favicon = generateFavicon([
+            0,
+            2,
+            0
+          ], {"0": "#2c2e87"});
+          document.getElementById("samsung")
+                  .querySelector('img.favicon')
+                  .setAttribute('src', favicon.toDataURL('image/icon'));
+        </script>
+        <a href="#theme=samsung" data-theme="samsung">samsung</a>
+      </li>
+    
+      <li id="slack">
+        <img class="favicon" />
+        <script>
+          var favicon = generateFavicon([
+            0,
+            2,
+            0
+          ], {"1": "#36c5f0", "2": "#2eb67d", "3": "#e01e5a", "5": "#ecb22e"});
+          document.getElementById("slack")
+                  .querySelector('img.favicon')
+                  .setAttribute('src', favicon.toDataURL('image/icon'));
+        </script>
+        <a href="#theme=slack" data-theme="slack">slack</a>
+      </li>
+    
+      <li id="spoqa">
+        <img class="favicon" />
+        <script>
+          var favicon = generateFavicon([
+            0,
+            2,
+            0
+          ], {"0": "#4c80f1"});
+          document.getElementById("spoqa")
+                  .querySelector('img.favicon')
+                  .setAttribute('src', favicon.toDataURL('image/icon'));
+        </script>
+        <a href="#theme=spoqa" data-theme="spoqa">spoqa</a>
+      </li>
+    
+      <li id="sublee">
+        <img class="favicon" />
+        <script>
+          var favicon = generateFavicon([
+            0,
+            2,
+            0
+          ], {"0": "#e57", "5": "#fd8"});
+          document.getElementById("sublee")
+                  .querySelector('img.favicon')
+                  .setAttribute('src', favicon.toDataURL('image/icon'));
+        </script>
+        <a href="#theme=sublee" data-theme="sublee">sublee</a>
+      </li>
+    
+      <li id="sublee-v1">
+        <img class="favicon" />
+        <script>
+          var favicon = generateFavicon([
+            0,
+            2,
+            0
+          ], {"0": "#e50", "3": "#b20", "5": "#fd4"});
+          document.getElementById("sublee-v1")
+                  .querySelector('img.favicon')
+                  .setAttribute('src', favicon.toDataURL('image/icon'));
+        </script>
+        <a href="#theme=sublee-v1" data-theme="sublee-v1">sublee-v1</a>
+      </li>
+    
+      <li id="sublee-v2">
+        <img class="favicon" />
+        <script>
+          var favicon = generateFavicon([
+            0,
+            2,
+            0
+          ], {"0": "#e34", "5": "#fc3"});
+          document.getElementById("sublee-v2")
+                  .querySelector('img.favicon')
+                  .setAttribute('src', favicon.toDataURL('image/icon'));
+        </script>
+        <a href="#theme=sublee-v2" data-theme="sublee-v2">sublee-v2</a>
+      </li>
+    
+      <li id="sublee-v3">
+        <img class="favicon" />
+        <script>
+          var favicon = generateFavicon([
+            0,
+            2,
+            0
+          ], {"0": "#e56", "5": "#fd6"});
+          document.getElementById("sublee-v3")
+                  .querySelector('img.favicon')
+                  .setAttribute('src', favicon.toDataURL('image/icon'));
+        </script>
+        <a href="#theme=sublee-v3" data-theme="sublee-v3">sublee-v3</a>
+      </li>
+    
+      <li id="terraform">
+        <img class="favicon" />
+        <script>
+          var favicon = generateFavicon([
+            1,
+            2,
+            4
+          ], {"0": "#5c4ee5"});
+          document.getElementById("terraform")
+                  .querySelector('img.favicon')
+                  .setAttribute('src', favicon.toDataURL('image/icon'));
+        </script>
+        <a href="#theme=terraform" data-theme="terraform">terraform</a>
+      </li>
+    
+      <li id="toss">
+        <img class="favicon" />
+        <script>
+          var favicon = generateFavicon([
+            0,
+            2,
+            0
+          ], {"0": "#0050ff"});
+          document.getElementById("toss")
+                  .querySelector('img.favicon')
+                  .setAttribute('src', favicon.toDataURL('image/icon'));
+        </script>
+        <a href="#theme=toss" data-theme="toss">toss</a>
+      </li>
+    
+      <li id="travis">
+        <img class="favicon" />
+        <script>
+          var favicon = generateFavicon([
+            0,
+            2,
+            0
+          ], {"0": "#3fa75f", "2": "#db423c", "3": "#d2c93b"});
+          document.getElementById("travis")
+                  .querySelector('img.favicon')
+                  .setAttribute('src', favicon.toDataURL('image/icon'));
+        </script>
+        <a href="#theme=travis" data-theme="travis">travis</a>
+      </li>
+    
+      <li id="trello">
+        <img class="favicon" />
+        <script>
+          var favicon = generateFavicon([
+            0,
+            0,
+            0
+          ], {"0": "#0079bf"});
+          document.getElementById("trello")
+                  .querySelector('img.favicon')
+                  .setAttribute('src', favicon.toDataURL('image/icon'));
+        </script>
+        <a href="#theme=trello" data-theme="trello">trello</a>
+      </li>
+    
+      <li id="tron">
+        <img class="favicon" />
+        <script>
+          var favicon = generateFavicon([
+            0,
+            2,
+            0
+          ], {"0": "#5ff"});
+          document.getElementById("tron")
+                  .querySelector('img.favicon')
+                  .setAttribute('src', favicon.toDataURL('image/icon'));
+        </script>
+        <a href="#theme=tron" data-theme="tron">tron</a>
+      </li>
+    
+      <li id="twitter">
+        <img class="favicon" />
+        <script>
+          var favicon = generateFavicon([
+            1,
+            2,
+            4
+          ], {"0": "#1da1f2"});
+          document.getElementById("twitter")
+                  .querySelector('img.favicon')
+                  .setAttribute('src', favicon.toDataURL('image/icon'));
+        </script>
+        <a href="#theme=twitter" data-theme="twitter">twitter</a>
+      </li>
+    
+      <li id="woowahan">
+        <img class="favicon" />
+        <script>
+          var favicon = generateFavicon([
+            0,
+            2,
+            0
+          ], {"0": "#2ac1bc"});
+          document.getElementById("woowahan")
+                  .querySelector('img.favicon')
+                  .setAttribute('src', favicon.toDataURL('image/icon'));
+        </script>
+        <a href="#theme=woowahan" data-theme="woowahan">woowahan</a>
+      </li>
+    
+      <li id="yanolja">
+        <img class="favicon" />
+        <script>
+          var favicon = generateFavicon([
+            0,
+            2,
+            0
+          ], {"0": "#ff3478"});
+          document.getElementById("yanolja")
+                  .querySelector('img.favicon')
+                  .setAttribute('src', favicon.toDataURL('image/icon'));
+        </script>
+        <a href="#theme=yanolja" data-theme="yanolja">yanolja</a>
+      </li>
+    
+      <li id="ycombinator">
+        <img class="favicon" />
+        <script>
+          var favicon = generateFavicon([
+            0,
+            2,
+            0
+          ], {"0": "#f26522"});
+          document.getElementById("ycombinator")
+                  .querySelector('img.favicon')
+                  .setAttribute('src', favicon.toDataURL('image/icon'));
+        </script>
+        <a href="#theme=ycombinator" data-theme="ycombinator">ycombinator</a>
+      </li>
+    
+      <li id="yeonghoey">
+        <img class="favicon" />
+        <script>
+          var favicon = generateFavicon([
+            0,
+            2,
+            0
+          ], {"0": "#212121"});
+          document.getElementById("yeonghoey")
+                  .querySelector('img.favicon')
+                  .setAttribute('src', favicon.toDataURL('image/icon'));
+        </script>
+        <a href="#theme=yeonghoey" data-theme="yeonghoey">yeonghoey</a>
+      </li>
+    
+  </ul>
+  <script>
+    // Build the hash to anchor map.
+    var anchors = {}
+    var as = document.querySelectorAll('.themes a');
+    for (var i = 0; i < as.length; ++i) {
+      var a = as[i];
+      var theme = a.getAttribute('data-theme');
+      anchors[theme] = a;
+    }
+    // A callback function for theme selectors.
+    function themeSelected(a, theme) {
+      if (/selected/.exec(a.getAttribute('class'))) {
+        return;
+      }
+      theme = theme || a.getAttribute('data-theme');
+      document.title = "Themes" + ': ' + theme;
+      var prevA = arguments.callee.a;
+      if (prevA) {
+        var href = '#theme=' + prevA.getAttribute('data-theme');
+        prevA.setAttribute('href', href);
+        prevA.setAttribute('class', '');
+      }
+      var url_root = "../";
+      a.setAttribute('href', url_root + '?theme=' + theme);
+      a.setAttribute('class', 'selected');
+      arguments.callee.a = a;
+    }
+    // selectGuessedTheme() is called at onhashchange.  It should call
+    // themeSelected() also.
+    var _selectGuessedTheme = selectGuessedTheme;
+    selectGuessedTheme = function() {
+      var theme = _selectGuessedTheme();
+      themeSelected(anchors[theme], theme);
+    };
+    // If onhashchange event isn't supported, fallback to anchor click event.
+    if (!('onhashchange' in window)) {
+      function anchorClicked() {
+        location.href = a.attr('href');
+        themeSelected(a);
+        return false;
+      }
+      for (var i = 0; i < as.length; ++i) {
+        var a = as[i];
+        a.onclick = anchorClicked;
+      }
+    }
+    // Callback of the initial theme.
+    themeSelected(anchors[__theme__], __theme__);
+  </script>
+
+  </main>
+
+  
+    <footer>
+      
+        <p class="copyright">
+          &copy; <span class="year">2012–2019</span> Heungsub Lee
+        </p>
+        <script>
+          // auto-renew the year range of the copyright.
+          var yearSpan = document.querySelector('.year');
+          var since = Number(/^[0-9]+/.exec(yearSpan.innerText)[0]);
+          var until = Number(/[0-9]+$/.exec(yearSpan.innerText)[0]);
+          var thisYear = (new Date()).getFullYear();
+          until = Math.max(until, thisYear);
+          if (since < until) {
+            yearSpan.innerHTML = since + '&ndash;' + until;
+          } else {
+            yearSpan.innerHTML = until;
+          }
+        </script>
+      
+    </footer>
+  
+
+  <script>
+    function keepTheme() {
+      var $anchors = document.querySelectorAll('a[href]');
+      for (var i = 0; i < $anchors.length; ++i) {
+        var $a = $anchors[i];
+        var href = $a.getAttribute('href');
+        if (/^(#|https?:\/\/|mailto:)/.exec(href)) {
+          continue;
+        }
+        if (!/([?&])theme=[^&]+/.exec(href)) {
+          var sep = /\?/.exec(href) ? '&' : '?';
+          href += sep + 'theme=' + __theme__;
+        }
+        $a.setAttribute('href', href);
+      }
+    }
+    if (__themeSelected__) {
+      keepTheme();
+    }
+    // avoid an animation at the first time.
+    window.onload = function() {
+      document.body.style.transition = 'margin 0.2s';
+    };
+  </script>
+
+  
+    
+    
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-1078484-1">
+</script>
+
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', "UA-1078484-1");
+</script>
+
+
+  
+
+  
+    <script src="//wcs.naver.net/wcslog.js"></script>
+    <script>
+      var wcs_add = {wa: '1275da0d21793e8'};
+      wcs_do();
+    </script>
+  
+</body>
+</html>
